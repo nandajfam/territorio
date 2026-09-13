@@ -1,0 +1,15 @@
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+export const supabaseConfigurado = Boolean(supabaseUrl && supabaseKey);
+
+export const supabase = supabaseConfigurado
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
+
+export const TABELA = "enderecos";
+
+export const CAMPOS =
+  "id, territorio, endereco, cidade, estado, tem_estrangeiro, visita_concluida, observacao, atualizado_em";

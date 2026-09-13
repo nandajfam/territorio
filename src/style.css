@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Animação suave da área expansível dos cartões. */
+.detalhes {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 250ms ease;
+}
+
+.detalhes[data-aberto="true"] {
+  grid-template-rows: 1fr;
+}
+
+.detalhes > div {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detalhes {
+    transition: none;
+  }
+}
