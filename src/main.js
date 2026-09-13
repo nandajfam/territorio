@@ -466,10 +466,16 @@ function abrirMaps(item) {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-function alternarCartao(id) {
-  if (estado.abertos.has(id)) estado.abertos.delete(id);
-  else estado.abertos.add(id);
-  renderizarLista();
+function alternarCartao(id, botao) {
+  const aberto = !estado.abertos.has(id);
+  if (aberto) estado.abertos.add(id);
+  else estado.abertos.delete(id);
+
+  // Alterna no DOM existente para que a transição CSS aconteça.
+  const detalhes = document.getElementById(`detalhes-${id}`);
+  if (detalhes) detalhes.dataset.aberto = String(aberto);
+  botao.setAttribute("aria-expanded", String(aberto));
+  botao.textContent = aberto ? "Recolher" : "Expandir";
 }
 
 /* ------------------------------------------------------------------ */
@@ -510,7 +516,7 @@ el.lista.addEventListener("click", (evento) => {
 
   switch (acao) {
     case "expandir":
-      alternarCartao(id);
+      alternarCartao(id, botao);
       break;
     case "tem":
       executarAtualizacao(botao, id, { tem_estrangeiro: true }, "Resposta salva.");
