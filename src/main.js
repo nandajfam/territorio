@@ -235,7 +235,10 @@ function renderizarResumo() {
 
 function renderizarTerritorios() {
   const nomes = territoriosDisponiveis();
-  if (!nomes.includes(estado.territorio)) estado.territorio = "Todos";
+  if (estado.enderecos.length > 0 && !nomes.includes(estado.territorio)) {
+    estado.territorio = "Todos";
+    localStorage.setItem(CHAVE_TERRITORIO, estado.territorio);
+  }
 
   el.territorios.innerHTML = nomes
     .map((nome) => {
