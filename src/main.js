@@ -259,6 +259,7 @@ function botaoResposta(item, valor) {
       data-acao="${valor ? "tem" : "nao-tem"}"
       data-id="${item.id}"
       aria-pressed="${selecionado}"
+      aria-label="${rotulo}${selecionado ? " (clique para desmarcar)" : ""}"
       class="${base} ${cor}"
     >${selecionado ? "✓ " : ""}${rotulo}</button>`;
 }
@@ -500,11 +501,17 @@ el.lista.addEventListener("click", (evento) => {
       alternarCartao(id, botao);
       break;
     case "tem":
-      executarAtualizacao(botao, id, { tem_estrangeiro: true }, "Resposta salva.");
+    case "nao-tem": {
+      const valor = acao === "tem";
+      const novo = item.tem_estrangeiro === valor ? null : valor;
+      executarAtualizacao(
+        botao,
+        id,
+        { tem_estrangeiro: novo },
+        novo === null ? "Resposta removida." : "Resposta salva.",
+      );
       break;
-    case "nao-tem":
-      executarAtualizacao(botao, id, { tem_estrangeiro: false }, "Resposta salva.");
-      break;
+    }
     case "periodo": {
       const campo = botao.dataset.campo;
       const periodo = PERIODOS.find((opcao) => opcao.campo === campo);
