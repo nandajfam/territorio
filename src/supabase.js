@@ -12,4 +12,4 @@ export const supabase = supabaseConfigurado
 export const TABELA = "enderecos";
 
 export const CAMPOS =
-  "id, regiao, territorio, endereco, cidade, estado, tem_estrangeiro, visita_manha, visita_tarde, visita_noite, atualizado_em";
+  "id, regiao, territorio, endereco, cidade, estado, tem_estrangeiro, visita_manha, visita_tarde, visita_noite, sem_retorno, atualizado_em";

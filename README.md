@@ -73,6 +73,7 @@ create table enderecos (
   visita_manha boolean not null default false,
   visita_tarde boolean not null default false,
   visita_noite boolean not null default false,
+  sem_retorno boolean not null default false,
   visita_concluida boolean not null default false,
   observacao text,
   atualizado_em timestamptz not null default now()
@@ -90,7 +91,8 @@ create index idx_enderecos_regiao on enderecos (regiao);
 `tem_estrangeiro` tem três estados: `null` (sem resposta), `true` (tem estrangeiro)
 e `false` (não tem estrangeiro). `visita_manha`, `visita_tarde` e `visita_noite`
 são independentes: marcam quais horários já foram tentados (podem estar os três
-marcados).
+marcados). `sem_retorno` indica que não há necessidade de voltar nos outros
+horários.
 
 Se a tabela já existia sem essas colunas:
 
@@ -98,9 +100,10 @@ Se a tabela já existia sem essas colunas:
 alter table enderecos
   add column visita_manha boolean not null default false,
   add column visita_tarde boolean not null default false,
-  add column visita_noite boolean not null default false;
+  add column visita_noite boolean not null default false,
+  add column sem_retorno boolean not null default false;
 
-grant update (visita_manha, visita_tarde, visita_noite)
+grant update (visita_manha, visita_tarde, visita_noite, sem_retorno)
   on table enderecos to anon, authenticated;
 ```
 
@@ -139,14 +142,14 @@ for update to anon, authenticated using (true) with check (true);
 revoke all on table enderecos from anon, authenticated;
 grant select on table enderecos to anon, authenticated;
 grant update (tem_estrangeiro, visita_manha, visita_tarde, visita_noite,
-  visita_concluida, observacao, atualizado_em)
+  sem_retorno, visita_concluida, observacao, atualizado_em)
   on table enderecos to anon, authenticated;
 ```
 
 Resultado:
 
 - **Permitido ao público**: consultar os endereços e atualizar `tem_estrangeiro`,
-  `visita_manha`, `visita_tarde`, `visita_noite`, `visita_concluida`, `observacao` e `atualizado_em` (as colunas
+  `visita_manha`, `visita_tarde`, `visita_noite`, `sem_retorno`, `visita_concluida`, `observacao` e `atualizado_em` (as colunas
   `observacao` e `visita_concluida` existem no banco, mas a interface não as
   utiliza).
 - **Bloqueado**: inserir registros, excluir registros e alterar `territorio`,
@@ -205,7 +208,8 @@ Texto em branco sobre os tons escuros e `#142026` sobre os claros.
 - Filtro de status: todos, sem resposta, tem estrangeiro, não tem estrangeiro.
 - Cartões com status textual, selos e período da visita; área expansível com
   animação para responder, marcar os períodos já visitados (Manhã/Tarde/Noite,
-  independentes) e abrir o endereço no Google Maps.
+  independentes), marcar "não há necessidade de retornar nos outros horários" e
+  abrir o endereço no Google Maps.
 - Resumo com totais recalculados a cada alteração.
 - Ordenação fixa por território, cidade e endereço.
 - Estados de carregamento, mensagens de sucesso/erro e botão "Tentar novamente".

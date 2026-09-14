@@ -310,6 +310,11 @@ function cartao(item) {
       </span>
       ${selo}
       ${
+        item.sem_retorno
+          ? `<span class="rounded-full bg-oceano px-2 py-1 text-xs font-semibold text-creme">✓ Sem necessidade de retorno</span>`
+          : ""
+      }
+      ${
         periodosVisitados(item).length > 0
           ? `<span class="rounded-full bg-mar px-2 py-1 text-xs font-semibold text-white">⏱ Visitado: ${esc(
               periodosVisitados(item)
@@ -344,6 +349,17 @@ function cartao(item) {
           <div class="flex gap-2">
             ${PERIODOS.map((periodo) => botaoPeriodo(item, periodo)).join("")}
           </div>
+
+          <label class="flex items-start gap-3 rounded-xl border border-mar bg-creme px-4 py-3 text-sm font-semibold text-marinho">
+            <input
+              type="checkbox"
+              data-acao="sem-retorno"
+              data-id="${item.id}"
+              ${item.sem_retorno ? "checked" : ""}
+              class="mt-0.5 h-5 w-5 shrink-0 accent-oceano focus:outline-none focus:ring-2 focus:ring-marinho"
+            />
+            <span>Não há necessidade de retornar nos outros horários.</span>
+          </label>
 
           <button
             type="button"
@@ -425,6 +441,7 @@ function renderizar() {
 
 function definirCarregando(botao, carregando, textoOriginal) {
   botao.disabled = carregando;
+  if (botao.tagName === "INPUT") return;
   botao.textContent = carregando ? "Salvando..." : textoOriginal;
 }
 
@@ -483,7 +500,7 @@ el.regioes.addEventListener("click", (evento) => {
 });
 
 el.lista.addEventListener("click", (evento) => {
-  const botao = evento.target.closest("button[data-acao]");
+  const botao = evento.target.closest("[data-acao]");
   if (!botao) return;
 
   const acao = botao.dataset.acao;
@@ -509,6 +526,18 @@ el.lista.addEventListener("click", (evento) => {
         id,
         { tem_estrangeiro: novo },
         novo === null ? "Resposta removida." : "Resposta salva.",
+      );
+      break;
+    }
+    case "sem-retorno": {
+      const marcado = item.sem_retorno !== true;
+      executarAtualizacao(
+        botao,
+        id,
+        { sem_retorno: marcado },
+        marcado
+          ? "Marcado: sem necessidade de retorno."
+          : "Desmarcado: retorno necessário.",
       );
       break;
     }
