@@ -13,7 +13,9 @@ create table enderecos (
   cidade text not null,
   estado text not null,
   tem_estrangeiro boolean default null,
-  periodo text check (periodo in ('Manhã', 'Tarde', 'Noite')),
+  visita_manha boolean not null default false,
+  visita_tarde boolean not null default false,
+  visita_noite boolean not null default false,
   visita_concluida boolean not null default false,
   observacao text,
   atualizado_em timestamptz not null default now()
@@ -62,7 +64,7 @@ revoke all on table enderecos from anon, authenticated;
 
 grant select on table enderecos to anon, authenticated;
 
-grant update (tem_estrangeiro, periodo, visita_concluida, observacao, atualizado_em)
+grant update (tem_estrangeiro, visita_manha, visita_tarde, visita_noite, visita_concluida, observacao, atualizado_em)
 on table enderecos to anon, authenticated;
 
 -- 5) Garantia extra do carimbo de tempo ---------------------------------

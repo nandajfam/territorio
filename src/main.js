@@ -6,7 +6,11 @@ import { supabase, supabaseConfigurado, TABELA, CAMPOS } from "./supabase.js";
 /* ------------------------------------------------------------------ */
 
 const CHAVE_REGIAO = "controle-visitas:regiao";
-const PERIODOS = ["Manhã", "Tarde", "Noite"];
+const PERIODOS = [
+  { campo: "visita_manha", rotulo: "Manhã" },
+  { campo: "visita_tarde", rotulo: "Tarde" },
+  { campo: "visita_noite", rotulo: "Noite" },
+];
 
 const estado = {
   enderecos: [],
@@ -259,8 +263,12 @@ function botaoResposta(item, valor) {
     >${selecionado ? "✓ " : ""}${rotulo}</button>`;
 }
 
+function periodosVisitados(item) {
+  return PERIODOS.filter((periodo) => item[periodo.campo] === true);
+}
+
 function botaoPeriodo(item, periodo) {
-  const selecionado = item.periodo === periodo;
+  const selecionado = item[periodo.campo] === true;
   const cor = selecionado
     ? "bg-oceano text-creme border-oceano"
     : "bg-white text-oceano border-mar";
@@ -268,12 +276,12 @@ function botaoPeriodo(item, periodo) {
     <button
       type="button"
       data-acao="periodo"
-      data-periodo="${esc(periodo)}"
+      data-campo="${periodo.campo}"
       data-id="${item.id}"
       aria-pressed="${selecionado}"
-      aria-label="Período da visita: ${esc(periodo)}"
+      aria-label="Visitado de ${esc(periodo.rotulo.toLowerCase())}"
       class="flex-1 rounded-xl border ${cor} px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-marinho disabled:opacity-60"
-    >${selecionado ? "✓ " : ""}${esc(periodo)}</button>`;
+    >${selecionado ? "✓ " : ""}${esc(periodo.rotulo)}</button>`;
 }
 
 function cartao(item) {
@@ -301,9 +309,13 @@ function cartao(item) {
       </span>
       ${selo}
       ${
-        item.periodo
-          ? `<span class="rounded-full bg-mar px-2 py-1 text-xs font-semibold text-white">⏱ ${esc(item.periodo)}</span>`
-          : `<span class="rounded-full bg-white px-2 py-1 text-xs font-semibold text-mar ring-1 ring-mar">Sem período</span>`
+        periodosVisitados(item).length > 0
+          ? `<span class="rounded-full bg-mar px-2 py-1 text-xs font-semibold text-white">⏱ Visitado: ${esc(
+              periodosVisitados(item)
+                .map((periodo) => periodo.rotulo)
+                .join(", "),
+            )}</span>`
+          : `<span class="rounded-full bg-white px-2 py-1 text-xs font-semibold text-mar ring-1 ring-mar">Nenhum período visitado</span>`
       }
     </div>
 
@@ -325,7 +337,9 @@ function cartao(item) {
             ${botaoResposta(item, false)}
           </div>
 
-          <p class="text-sm font-semibold text-marinho">Qual período da visita?</p>
+          <p class="text-sm font-semibold text-marinho">
+            Qual período da visita? <span class="font-normal text-mar">(marque todos os já tentados)</span>
+          </p>
           <div class="flex gap-2">
             ${PERIODOS.map((periodo) => botaoPeriodo(item, periodo)).join("")}
           </div>
@@ -492,13 +506,16 @@ el.lista.addEventListener("click", (evento) => {
       executarAtualizacao(botao, id, { tem_estrangeiro: false }, "Resposta salva.");
       break;
     case "periodo": {
-      const escolhido = botao.dataset.periodo;
-      const novo = item.periodo === escolhido ? null : escolhido;
+      const campo = botao.dataset.campo;
+      const periodo = PERIODOS.find((opcao) => opcao.campo === campo);
+      const marcado = item[campo] !== true;
       executarAtualizacao(
         botao,
         id,
-        { periodo: novo },
-        novo ? `Período: ${novo}.` : "Período removido.",
+        { [campo]: marcado },
+        marcado
+          ? `${periodo.rotulo}: visitado.`
+          : `${periodo.rotulo}: desmarcado.`,
       );
       break;
     }
