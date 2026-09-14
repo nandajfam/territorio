@@ -128,7 +128,8 @@ grant update (tem_estrangeiro, visita_concluida, observacao, atualizado_em)
 Resultado:
 
 - **Permitido ao público**: consultar os endereços e atualizar `tem_estrangeiro`,
-  `visita_concluida`, `observacao` e `atualizado_em`.
+  `visita_concluida`, `observacao` e `atualizado_em` (a coluna `observacao`
+  existe no banco, mas a interface não a utiliza).
 - **Bloqueado**: inserir registros, excluir registros e alterar `territorio`,
   `endereco`, `cidade` ou `estado` (não há policy de INSERT/DELETE e os GRANTs
   de UPDATE são por coluna).
@@ -156,12 +157,11 @@ Resultado:
 Este site é **totalmente público**:
 
 - Qualquer pessoa que tenha (ou descubra) o endereço do site enxerga **todos** os
-  endereços cadastrados e pode marcar, desmarcar e escrever observações.
+  endereços cadastrados e pode marcar e desmarcar as respostas e as visitas.
 - A chave pública fica visível no código do navegador — isso é esperado e seguro
   apenas porque as regras de RLS limitam o que ela pode fazer.
 - Não há histórico de quem alterou o quê, nem como desfazer uma alteração feita
   por engano.
-- Não escreva dados pessoais sensíveis no campo de observação.
 
 Se isso for um problema, ative o Supabase Auth (e-mail mágico, por exemplo) e
 troque as policies de `to anon, authenticated` para `to authenticated`.
@@ -186,8 +186,8 @@ Texto em branco sobre os tons escuros e `#142026` sobre os claros.
 - Filtro de status: todos, sem resposta, tem estrangeiro, não tem estrangeiro,
   visita concluída.
 - Cartões com status textual, selos e indicador de visita concluída; área
-  expansível com animação para responder, observar, concluir a visita e abrir o
-  endereço no Google Maps.
+  expansível com animação para responder, concluir a visita e abrir o endereço
+  no Google Maps.
 - Resumo com totais recalculados a cada alteração.
 - Ordenação fixa por território, cidade e endereço.
 - Estados de carregamento, mensagens de sucesso/erro e botão "Tentar novamente".

@@ -313,24 +313,6 @@ function cartao(item) {
             ${botaoResposta(item, false)}
           </div>
 
-          <div>
-            <label for="obs-${item.id}" class="mb-1 block text-sm font-semibold text-oceano"
-              >Observação</label
-            >
-            <textarea
-              id="obs-${item.id}"
-              rows="3"
-              class="w-full rounded-xl border border-mar px-3 py-2 text-base text-marinho outline-none focus:border-oceano focus:ring-2 focus:ring-oceano"
-            >${esc(item.observacao ?? "")}</textarea>
-          </div>
-
-          <button
-            type="button"
-            data-acao="salvar-observacao"
-            data-id="${item.id}"
-            class="w-full rounded-xl bg-oceano px-4 py-3 text-sm font-semibold text-creme focus:outline-none focus:ring-2 focus:ring-marinho disabled:opacity-60"
-          >Salvar observação</button>
-
           <button
             type="button"
             data-acao="${item.visita_concluida ? "desmarcar-visita" : "concluir-visita"}"
@@ -499,16 +481,6 @@ el.lista.addEventListener("click", (evento) => {
     case "nao-tem":
       executarAtualizacao(botao, id, { tem_estrangeiro: false }, "Resposta salva.");
       break;
-    case "salvar-observacao": {
-      const campo = document.getElementById(`obs-${id}`);
-      executarAtualizacao(
-        botao,
-        id,
-        { observacao: campo.value.trim() || null },
-        "Observação salva.",
-      );
-      break;
-    }
     case "concluir-visita":
       executarAtualizacao(botao, id, { visita_concluida: true }, "Visita concluída.");
       break;
