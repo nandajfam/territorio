@@ -171,9 +171,11 @@ troque as policies de `to anon, authenticated` para `to authenticated`.
 | Cor | Uso |
 | --- | --- |
 | `#142026` (marinho) | cabeçalho, textos principais, foco |
-| `#123142` (oceano) | aba ativa, botões primários, "Tem estrangeiro" |
+| `#123142` (oceano) | aba ativa, botões primários |
 | `#3b657a` (mar) | bordas, textos secundários, visita concluída |
 | `#e9f0c9` (creme) | fundo da página e destaques claros |
+| `#1b5136` (verde) | "Tem estrangeiro" |
+| `#7b1f26` (vermelho) | "Não tem estrangeiro" |
 
 Texto em branco sobre os tons escuros e `#142026` sobre os claros.
 

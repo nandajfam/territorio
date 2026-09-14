@@ -49,8 +49,8 @@ function rotuloEstrangeiro(valor) {
 }
 
 function classesStatus(valor) {
-  if (valor === true) return "bg-oceano text-creme";
-  if (valor === false) return "bg-creme text-marinho ring-1 ring-marinho";
+  if (valor === true) return "bg-verde text-white";
+  if (valor === false) return "bg-vermelho text-white";
   return "bg-white text-oceano ring-1 ring-mar";
 }
 
@@ -184,10 +184,12 @@ function calcularResumo() {
     {
       rotulo: "Tem estrangeiro",
       valor: base.filter((i) => i.tem_estrangeiro === true).length,
+      cor: "text-verde",
     },
     {
       rotulo: "Não tem",
       valor: base.filter((i) => i.tem_estrangeiro === false).length,
+      cor: "text-vermelho",
     },
     {
       rotulo: "Visitas concluídas",
@@ -202,7 +204,7 @@ function renderizarResumo() {
       (item) => `
       <li class="rounded-xl bg-white p-3 shadow-sm ring-1 ring-mar/30">
         <p class="text-xs font-semibold text-oceano">${esc(item.rotulo)}</p>
-        <p class="text-xl font-bold text-marinho">${item.valor}</p>
+        <p class="text-xl font-bold ${item.cor ?? "text-marinho"}">${item.valor}</p>
       </li>`,
     )
     .join("");
@@ -246,11 +248,11 @@ function botaoResposta(item, valor) {
     "flex-1 rounded-xl border px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-marinho disabled:opacity-60";
   const cor = valor
     ? selecionado
-      ? "bg-oceano text-creme border-oceano"
-      : "bg-white text-oceano border-oceano"
+      ? "bg-verde text-white border-verde"
+      : "bg-white text-verde border-verde"
     : selecionado
-      ? "bg-creme text-marinho border-marinho"
-      : "bg-white text-marinho border-mar";
+      ? "bg-vermelho text-white border-vermelho"
+      : "bg-white text-vermelho border-vermelho";
   const rotulo = valor ? "Tem estrangeiro" : "Não tem estrangeiro";
   return `
     <button
@@ -268,9 +270,9 @@ function cartao(item) {
 
   const selo =
     item.tem_estrangeiro === true
-      ? `<span class="rounded-full bg-oceano px-2 py-1 text-xs font-semibold text-creme">★ Estrangeiro encontrado</span>`
+      ? `<span class="rounded-full bg-white px-2 py-1 text-xs font-semibold text-verde ring-1 ring-verde">★ Estrangeiro encontrado</span>`
       : item.tem_estrangeiro === false
-        ? `<span class="rounded-full bg-creme px-2 py-1 text-xs font-semibold text-marinho ring-1 ring-marinho">✕ Nenhum estrangeiro</span>`
+        ? `<span class="rounded-full bg-white px-2 py-1 text-xs font-semibold text-vermelho ring-1 ring-vermelho">✕ Nenhum estrangeiro</span>`
         : "";
 
   return `
