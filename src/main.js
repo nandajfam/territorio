@@ -6,6 +6,7 @@ import { supabase, supabaseConfigurado, TABELA, CAMPOS } from "./supabase.js";
 /* ------------------------------------------------------------------ */
 
 const CHAVE_REGIAO = "controle-visitas:regiao";
+const PERIODOS = ["Manhã", "Tarde", "Noite"];
 
 const estado = {
   enderecos: [],
@@ -141,8 +142,6 @@ function combinaStatus(item) {
       return item.tem_estrangeiro === true;
     case "nao_tem":
       return item.tem_estrangeiro === false;
-    case "concluida":
-      return item.visita_concluida === true;
     default:
       return true;
   }
@@ -190,10 +189,6 @@ function calcularResumo() {
       rotulo: "Não tem",
       valor: base.filter((i) => i.tem_estrangeiro === false).length,
       cor: "text-vermelho",
-    },
-    {
-      rotulo: "Visitas concluídas",
-      valor: base.filter((i) => i.visita_concluida === true).length,
     },
   ];
 }
@@ -264,6 +259,23 @@ function botaoResposta(item, valor) {
     >${selecionado ? "✓ " : ""}${rotulo}</button>`;
 }
 
+function botaoPeriodo(item, periodo) {
+  const selecionado = item.periodo === periodo;
+  const cor = selecionado
+    ? "bg-oceano text-creme border-oceano"
+    : "bg-white text-oceano border-mar";
+  return `
+    <button
+      type="button"
+      data-acao="periodo"
+      data-periodo="${esc(periodo)}"
+      data-id="${item.id}"
+      aria-pressed="${selecionado}"
+      aria-label="Período da visita: ${esc(periodo)}"
+      class="flex-1 rounded-xl border ${cor} px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-marinho disabled:opacity-60"
+    >${selecionado ? "✓ " : ""}${esc(periodo)}</button>`;
+}
+
 function cartao(item) {
   const aberto = estado.abertos.has(item.id);
   const status = rotuloEstrangeiro(item.tem_estrangeiro);
@@ -289,9 +301,9 @@ function cartao(item) {
       </span>
       ${selo}
       ${
-        item.visita_concluida
-          ? `<span class="rounded-full bg-mar px-2 py-1 text-xs font-semibold text-white">✓ Visita concluída</span>`
-          : `<span class="rounded-full bg-white px-2 py-1 text-xs font-semibold text-mar ring-1 ring-mar">Visita pendente</span>`
+        item.periodo
+          ? `<span class="rounded-full bg-mar px-2 py-1 text-xs font-semibold text-white">⏱ ${esc(item.periodo)}</span>`
+          : `<span class="rounded-full bg-white px-2 py-1 text-xs font-semibold text-mar ring-1 ring-mar">Sem período</span>`
       }
     </div>
 
@@ -313,12 +325,10 @@ function cartao(item) {
             ${botaoResposta(item, false)}
           </div>
 
-          <button
-            type="button"
-            data-acao="${item.visita_concluida ? "desmarcar-visita" : "concluir-visita"}"
-            data-id="${item.id}"
-            class="w-full rounded-xl border border-oceano px-4 py-3 text-sm font-semibold text-oceano focus:outline-none focus:ring-2 focus:ring-marinho disabled:opacity-60"
-          >${item.visita_concluida ? "Desmarcar visita" : "Marcar visita concluída"}</button>
+          <p class="text-sm font-semibold text-marinho">Qual período da visita?</p>
+          <div class="flex gap-2">
+            ${PERIODOS.map((periodo) => botaoPeriodo(item, periodo)).join("")}
+          </div>
 
           <button
             type="button"
@@ -481,12 +491,17 @@ el.lista.addEventListener("click", (evento) => {
     case "nao-tem":
       executarAtualizacao(botao, id, { tem_estrangeiro: false }, "Resposta salva.");
       break;
-    case "concluir-visita":
-      executarAtualizacao(botao, id, { visita_concluida: true }, "Visita concluída.");
+    case "periodo": {
+      const escolhido = botao.dataset.periodo;
+      const novo = item.periodo === escolhido ? null : escolhido;
+      executarAtualizacao(
+        botao,
+        id,
+        { periodo: novo },
+        novo ? `Período: ${novo}.` : "Período removido.",
+      );
       break;
-    case "desmarcar-visita":
-      executarAtualizacao(botao, id, { visita_concluida: false }, "Visita desmarcada.");
-      break;
+    }
     case "maps":
       abrirMaps(item);
       break;
