@@ -7,6 +7,7 @@
 
 create table enderecos (
   id bigint generated always as identity primary key,
+  regiao text,
   territorio text not null,
   endereco text not null,
   cidade text not null,
@@ -24,6 +25,9 @@ on enderecos (territorio);
 
 create index idx_enderecos_cidade
 on enderecos (cidade);
+
+create index idx_enderecos_regiao
+on enderecos (regiao);
 
 -- 3) Row Level Security -------------------------------------------------
 -- O site é público (sem login), então todo acesso usa os papéis
@@ -80,6 +84,6 @@ for each row
 execute function set_atualizado_em();
 
 -- 6) Dados de exemplo (opcional) ----------------------------------------
--- insert into enderecos (territorio, endereco, cidade, estado) values
---   ('Zona Norte', 'Rua Exemplo, 100', 'São Paulo', 'SP'),
---   ('Zona Sul',   'Av. Modelo, 250',  'São Paulo', 'SP');
+-- insert into enderecos (regiao, territorio, endereco, cidade, estado) values
+--   ('Santana',   'ZN-02',  'Rua Exemplo, 100', 'São Paulo', 'SP'),
+--   ('Guarulhos', 'GRU-10', 'Av. Modelo, 250',  'Guarulhos',  'SP');

@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@theme {
+  --color-marinho: #142026;
+  --color-oceano: #123142;
+  --color-mar: #3b657a;
+  --color-creme: #e9f0c9;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }

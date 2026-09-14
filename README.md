@@ -64,6 +64,7 @@ O script cria a tabela:
 ```sql
 create table enderecos (
   id bigint generated always as identity primary key,
+  regiao text,
   territorio text not null,
   endereco text not null,
   cidade text not null,
@@ -80,6 +81,7 @@ E os índices:
 ```sql
 create index idx_enderecos_territorio on enderecos (territorio);
 create index idx_enderecos_cidade on enderecos (cidade);
+create index idx_enderecos_regiao on enderecos (regiao);
 ```
 
 `tem_estrangeiro` tem três estados: `null` (sem resposta), `true` (tem estrangeiro)
@@ -89,20 +91,20 @@ e `false` (não tem estrangeiro).
 
 Opção A — **planilha CSV** (recomendado):
 
-1. Crie um CSV com o cabeçalho `territorio,endereco,cidade,estado`.
+1. Crie um CSV com o cabeçalho `regiao,territorio,endereco,cidade,estado`.
 2. No Supabase: **Table Editor → enderecos → Insert → Import data from CSV**.
 3. Não inclua a coluna `id`; ela é gerada automaticamente.
 
 Opção B — **SQL**:
 
 ```sql
-insert into enderecos (territorio, endereco, cidade, estado) values
-  ('Zona Norte', 'Rua Exemplo, 100', 'São Paulo', 'SP'),
-  ('Zona Sul',   'Av. Modelo, 250',  'São Paulo', 'SP');
+insert into enderecos (regiao, territorio, endereco, cidade, estado) values
+  ('Santana',   'ZN-02',  'Rua Exemplo, 100', 'São Paulo', 'SP'),
+  ('Guarulhos', 'GRU-10', 'Av. Modelo, 250',  'Guarulhos',  'SP');
 ```
 
-Os botões de território da interface são gerados a partir dos valores distintos
-da coluna `territorio` — não há regiões fixas no código.
+As abas da interface são geradas a partir dos valores distintos da coluna
+`regiao` — não há regiões fixas no código.
 
 ## 7. Políticas RLS públicas
 
@@ -164,11 +166,21 @@ Este site é **totalmente público**:
 Se isso for um problema, ative o Supabase Auth (e-mail mágico, por exemplo) e
 troque as policies de `to anon, authenticated` para `to authenticated`.
 
+## Paleta
+
+| Cor | Uso |
+| --- | --- |
+| `#142026` (marinho) | cabeçalho, textos principais, foco |
+| `#123142` (oceano) | aba ativa, botões primários, "Tem estrangeiro" |
+| `#3b657a` (mar) | bordas, textos secundários, visita concluída |
+| `#e9f0c9` (creme) | fundo da página e destaques claros |
+
+Texto em branco sobre os tons escuros e `#142026` sobre os claros.
+
 ## Funcionalidades
 
-- Menu horizontal de territórios carregado do banco, com botão "Todos" e rolagem
-  horizontal; o último território escolhido é lembrado no `localStorage`.
-- Busca instantânea em território, endereço, cidade e estado (ignora acentos).
+- Abas horizontais de regiões carregadas do banco, com botão "Todos" e rolagem
+  horizontal; a última região escolhida é lembrada no `localStorage`.
 - Filtro de status: todos, sem resposta, tem estrangeiro, não tem estrangeiro,
   visita concluída.
 - Cartões com status textual, selos e indicador de visita concluída; área

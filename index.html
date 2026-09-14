@@ -3,22 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1d4ed8" />
+    <meta name="theme-color" content="#142026" />
     <title>Controle de Visitas</title>
     <link rel="icon" href="data:," />
   </head>
-  <body class="bg-slate-100 text-slate-900 antialiased">
+  <body class="bg-creme text-marinho antialiased">
     <a
       href="#lista"
       class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:shadow"
       >Ir para a lista de endereços</a
     >
 
-    <header class="bg-blue-700 text-white shadow">
+    <header class="bg-marinho text-creme shadow">
       <div class="mx-auto w-full max-w-3xl px-4 py-4">
         <h1 class="text-xl font-bold sm:text-2xl">Controle de Visitas</h1>
-        <p class="mt-1 text-sm text-blue-100">
-          Selecione um território e atualize os endereços
+        <p class="mt-1 text-sm text-creme/80">
+          Selecione uma região e atualize os endereços
         </p>
       </div>
     </header>
@@ -28,34 +28,22 @@
         <ul id="resumo" class="grid grid-cols-2 gap-2 sm:grid-cols-5"></ul>
       </section>
 
-      <section aria-label="Busca e filtros" class="mb-4 space-y-3">
-        <div>
-          <label for="busca" class="sr-only">Buscar endereços</label>
-          <input
-            id="busca"
-            type="search"
-            inputmode="search"
-            autocomplete="off"
-            placeholder="Buscar por território, endereço, cidade ou estado"
-            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base shadow-sm outline-none placeholder:text-slate-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600"
-          />
-        </div>
-
-        <nav aria-label="Territórios">
+      <section aria-label="Filtros" class="mb-4 space-y-3">
+        <nav aria-label="Regiões">
           <div
-            id="territorios"
+            id="regioes"
             class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1"
             role="group"
           ></div>
         </nav>
 
         <div>
-          <label for="status" class="mb-1 block text-sm font-medium text-slate-700"
+          <label for="status" class="mb-1 block text-sm font-semibold text-oceano"
             >Status</label
           >
           <select
             id="status"
-            class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base shadow-sm outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600"
+            class="w-full rounded-xl border border-mar bg-white px-4 py-3 text-base text-marinho shadow-sm outline-none focus:border-oceano focus:ring-2 focus:ring-oceano"
           >
             <option value="todos">Todos</option>
             <option value="sem_resposta">Sem resposta</option>

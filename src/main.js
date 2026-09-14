@@ -5,14 +5,13 @@ import { supabase, supabaseConfigurado, TABELA, CAMPOS } from "./supabase.js";
 /* Estado da aplicação                                                 */
 /* ------------------------------------------------------------------ */
 
-const CHAVE_TERRITORIO = "controle-visitas:territorio";
+const CHAVE_REGIAO = "controle-visitas:regiao";
 
 const estado = {
   enderecos: [],
   carregando: true,
   erro: null,
-  busca: "",
-  territorio: localStorage.getItem(CHAVE_TERRITORIO) || "Todos",
+  regiao: localStorage.getItem(CHAVE_REGIAO) || "Todos",
   status: "todos",
   abertos: new Set(),
   salvando: new Set(),
@@ -20,8 +19,7 @@ const estado = {
 
 const el = {
   resumo: document.getElementById("resumo"),
-  busca: document.getElementById("busca"),
-  territorios: document.getElementById("territorios"),
+  regioes: document.getElementById("regioes"),
   status: document.getElementById("status"),
   lista: document.getElementById("lista"),
   avisos: document.getElementById("avisos"),
@@ -44,12 +42,6 @@ const esc = (valor) =>
       })[c],
   );
 
-const normalizar = (valor) =>
-  String(valor ?? "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-
 function rotuloEstrangeiro(valor) {
   if (valor === true) return "Tem estrangeiro";
   if (valor === false) return "Não tem estrangeiro";
@@ -57,9 +49,9 @@ function rotuloEstrangeiro(valor) {
 }
 
 function classesStatus(valor) {
-  if (valor === true) return "bg-green-100 text-green-900 ring-1 ring-green-600";
-  if (valor === false) return "bg-red-100 text-red-900 ring-1 ring-red-600";
-  return "bg-amber-100 text-amber-900 ring-1 ring-amber-600";
+  if (valor === true) return "bg-oceano text-creme";
+  if (valor === false) return "bg-creme text-marinho ring-1 ring-marinho";
+  return "bg-white text-oceano ring-1 ring-mar";
 }
 
 /* ------------------------------------------------------------------ */
@@ -67,10 +59,9 @@ function classesStatus(valor) {
 /* ------------------------------------------------------------------ */
 
 function avisar(mensagem, tipo = "sucesso") {
-  const cor =
-    tipo === "erro" ? "bg-red-700" : tipo === "info" ? "bg-slate-800" : "bg-green-700";
+  const cor = tipo === "erro" ? "bg-marinho" : "bg-oceano";
   const aviso = document.createElement("div");
-  aviso.className = `pointer-events-auto max-w-sm rounded-xl ${cor} px-4 py-3 text-sm font-medium text-white shadow-lg`;
+  aviso.className = `pointer-events-auto max-w-sm rounded-xl ${cor} px-4 py-3 text-sm font-medium text-creme shadow-lg`;
   aviso.textContent = mensagem;
   el.avisos.appendChild(aviso);
   setTimeout(() => aviso.remove(), 4000);
@@ -134,8 +125,10 @@ async function atualizarEndereco(id, campos) {
 /* Filtragem e ordenação                                               */
 /* ------------------------------------------------------------------ */
 
-function territoriosDisponiveis() {
-  const nomes = [...new Set(estado.enderecos.map((item) => item.territorio))];
+function regioesDisponiveis() {
+  const nomes = [
+    ...new Set(estado.enderecos.map((item) => item.regiao).filter(Boolean)),
+  ];
   nomes.sort((a, b) => a.localeCompare(b, "pt-BR"));
   return ["Todos", ...nomes];
 }
@@ -155,15 +148,6 @@ function combinaStatus(item) {
   }
 }
 
-function combinaBusca(item) {
-  const termo = normalizar(estado.busca).trim();
-  if (!termo) return true;
-  const alvo = normalizar(
-    [item.territorio, item.endereco, item.cidade, item.estado].join(" "),
-  );
-  return termo.split(/\s+/).every((parte) => alvo.includes(parte));
-}
-
 function ordenar(lista) {
   return [...lista].sort(
     (a, b) =>
@@ -173,14 +157,14 @@ function ordenar(lista) {
   );
 }
 
+function daRegiaoSelecionada(item) {
+  return estado.regiao === "Todos" || item.regiao === estado.regiao;
+}
+
 function enderecosVisiveis() {
-  const filtrados = estado.enderecos.filter(
-    (item) =>
-      (estado.territorio === "Todos" || item.territorio === estado.territorio) &&
-      combinaStatus(item) &&
-      combinaBusca(item),
+  return ordenar(
+    estado.enderecos.filter((item) => daRegiaoSelecionada(item) && combinaStatus(item)),
   );
-  return ordenar(filtrados);
 }
 
 /* ------------------------------------------------------------------ */
@@ -188,31 +172,26 @@ function enderecosVisiveis() {
 /* ------------------------------------------------------------------ */
 
 function calcularResumo() {
-  const base = estado.enderecos.filter(
-    (item) => estado.territorio === "Todos" || item.territorio === estado.territorio,
-  );
+  const base = estado.enderecos.filter(daRegiaoSelecionada);
   return [
-    { rotulo: "Total", valor: base.length, cor: "text-slate-900" },
+    { rotulo: "Total", valor: base.length },
     {
       rotulo: "Sem resposta",
-      valor: base.filter((i) => i.tem_estrangeiro === null || i.tem_estrangeiro === undefined)
-        .length,
-      cor: "text-amber-700",
+      valor: base.filter(
+        (i) => i.tem_estrangeiro === null || i.tem_estrangeiro === undefined,
+      ).length,
     },
     {
       rotulo: "Tem estrangeiro",
       valor: base.filter((i) => i.tem_estrangeiro === true).length,
-      cor: "text-green-700",
     },
     {
       rotulo: "Não tem",
       valor: base.filter((i) => i.tem_estrangeiro === false).length,
-      cor: "text-red-700",
     },
     {
       rotulo: "Visitas concluídas",
       valor: base.filter((i) => i.visita_concluida === true).length,
-      cor: "text-blue-700",
     },
   ];
 }
@@ -221,37 +200,37 @@ function renderizarResumo() {
   el.resumo.innerHTML = calcularResumo()
     .map(
       (item) => `
-      <li class="rounded-xl bg-white p-3 shadow-sm">
-        <p class="text-xs font-medium text-slate-600">${esc(item.rotulo)}</p>
-        <p class="text-xl font-bold ${item.cor}">${item.valor}</p>
+      <li class="rounded-xl bg-white p-3 shadow-sm ring-1 ring-mar/30">
+        <p class="text-xs font-semibold text-oceano">${esc(item.rotulo)}</p>
+        <p class="text-xl font-bold text-marinho">${item.valor}</p>
       </li>`,
     )
     .join("");
 }
 
 /* ------------------------------------------------------------------ */
-/* Menu de territórios                                                 */
+/* Menu de regiões                                                     */
 /* ------------------------------------------------------------------ */
 
-function renderizarTerritorios() {
-  const nomes = territoriosDisponiveis();
-  if (estado.enderecos.length > 0 && !nomes.includes(estado.territorio)) {
-    estado.territorio = "Todos";
-    localStorage.setItem(CHAVE_TERRITORIO, estado.territorio);
+function renderizarRegioes() {
+  const nomes = regioesDisponiveis();
+  if (estado.enderecos.length > 0 && !nomes.includes(estado.regiao)) {
+    estado.regiao = "Todos";
+    localStorage.setItem(CHAVE_REGIAO, estado.regiao);
   }
 
-  el.territorios.innerHTML = nomes
+  el.regioes.innerHTML = nomes
     .map((nome) => {
-      const ativo = nome === estado.territorio;
+      const ativo = nome === estado.regiao;
       const cor = ativo
-        ? "bg-blue-700 text-white border-blue-700"
-        : "bg-white text-slate-700 border-slate-300";
+        ? "bg-oceano text-creme border-oceano"
+        : "bg-white text-oceano border-mar";
       return `
         <button
           type="button"
-          data-territorio="${esc(nome)}"
+          data-regiao="${esc(nome)}"
           aria-pressed="${ativo}"
-          class="shrink-0 rounded-full border ${cor} px-4 py-2 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+          class="shrink-0 rounded-full border ${cor} px-4 py-2 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-marinho"
         >${esc(nome)}</button>`;
     })
     .join("");
@@ -264,14 +243,14 @@ function renderizarTerritorios() {
 function botaoResposta(item, valor) {
   const selecionado = item.tem_estrangeiro === valor;
   const base =
-    "flex-1 rounded-xl border px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 disabled:opacity-60";
+    "flex-1 rounded-xl border px-3 py-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-marinho disabled:opacity-60";
   const cor = valor
     ? selecionado
-      ? "bg-green-700 text-white border-green-700 focus:ring-green-700"
-      : "bg-white text-green-800 border-green-700 focus:ring-green-700"
+      ? "bg-oceano text-creme border-oceano"
+      : "bg-white text-oceano border-oceano"
     : selecionado
-      ? "bg-red-700 text-white border-red-700 focus:ring-red-700"
-      : "bg-white text-red-800 border-red-700 focus:ring-red-700";
+      ? "bg-creme text-marinho border-marinho"
+      : "bg-white text-marinho border-mar";
   const rotulo = valor ? "Tem estrangeiro" : "Não tem estrangeiro";
   return `
     <button
@@ -285,23 +264,22 @@ function botaoResposta(item, valor) {
 
 function cartao(item) {
   const aberto = estado.abertos.has(item.id);
-  const salvando = estado.salvando.has(item.id);
   const status = rotuloEstrangeiro(item.tem_estrangeiro);
 
   const selo =
     item.tem_estrangeiro === true
-      ? `<span class="rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-900 ring-1 ring-green-600">Estrangeiro encontrado</span>`
+      ? `<span class="rounded-full bg-oceano px-2 py-1 text-xs font-semibold text-creme">★ Estrangeiro encontrado</span>`
       : item.tem_estrangeiro === false
-        ? `<span class="rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-900 ring-1 ring-red-600">Nenhum estrangeiro</span>`
+        ? `<span class="rounded-full bg-creme px-2 py-1 text-xs font-semibold text-marinho ring-1 ring-marinho">✕ Nenhum estrangeiro</span>`
         : "";
 
   return `
-  <article class="rounded-2xl bg-white p-4 shadow-sm" data-cartao="${item.id}">
-    <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">
-      Território: ${esc(item.territorio)}
+  <article class="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-mar/30" data-cartao="${item.id}">
+    <p class="text-xs font-semibold uppercase tracking-wide text-mar">
+      ${esc(item.regiao ?? "Sem região")} · Território: ${esc(item.territorio)}
     </p>
-    <p class="mt-1 text-base font-semibold leading-snug">${esc(item.endereco)}</p>
-    <p class="text-sm text-slate-700">${esc(item.cidade)} - ${esc(item.estado)}</p>
+    <p class="mt-1 text-base font-semibold leading-snug text-marinho">${esc(item.endereco)}</p>
+    <p class="text-sm text-oceano">${esc(item.cidade)} - ${esc(item.estado)}</p>
 
     <div class="mt-3 flex flex-wrap items-center gap-2">
       <span class="rounded-full px-2 py-1 text-xs font-semibold ${classesStatus(item.tem_estrangeiro)}">
@@ -310,8 +288,8 @@ function cartao(item) {
       ${selo}
       ${
         item.visita_concluida
-          ? `<span class="rounded-full bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-900 ring-1 ring-blue-600">✓ Visita concluída</span>`
-          : `<span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-400">Visita pendente</span>`
+          ? `<span class="rounded-full bg-mar px-2 py-1 text-xs font-semibold text-white">✓ Visita concluída</span>`
+          : `<span class="rounded-full bg-white px-2 py-1 text-xs font-semibold text-mar ring-1 ring-mar">Visita pendente</span>`
       }
     </div>
 
@@ -321,26 +299,26 @@ function cartao(item) {
       data-id="${item.id}"
       aria-expanded="${aberto}"
       aria-controls="detalhes-${item.id}"
-      class="mt-3 w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
+      class="mt-3 w-full rounded-xl border border-mar bg-creme px-4 py-3 text-sm font-semibold text-marinho focus:outline-none focus:ring-2 focus:ring-marinho"
     >${aberto ? "Recolher" : "Expandir"}</button>
 
     <div id="detalhes-${item.id}" class="detalhes mt-0" data-aberto="${aberto}">
       <div>
         <div class="space-y-3 pt-3">
-          <p class="text-sm font-semibold">Tem estrangeiro neste endereço?</p>
+          <p class="text-sm font-semibold text-marinho">Tem estrangeiro neste endereço?</p>
           <div class="flex gap-2">
             ${botaoResposta(item, true)}
             ${botaoResposta(item, false)}
           </div>
 
           <div>
-            <label for="obs-${item.id}" class="mb-1 block text-sm font-medium text-slate-700"
+            <label for="obs-${item.id}" class="mb-1 block text-sm font-semibold text-oceano"
               >Observação</label
             >
             <textarea
               id="obs-${item.id}"
               rows="3"
-              class="w-full rounded-xl border border-slate-300 px-3 py-2 text-base outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600"
+              class="w-full rounded-xl border border-mar px-3 py-2 text-base text-marinho outline-none focus:border-oceano focus:ring-2 focus:ring-oceano"
             >${esc(item.observacao ?? "")}</textarea>
           </div>
 
@@ -348,14 +326,14 @@ function cartao(item) {
             type="button"
             data-acao="salvar-observacao"
             data-id="${item.id}"
-            class="w-full rounded-xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-700 disabled:opacity-60"
+            class="w-full rounded-xl bg-oceano px-4 py-3 text-sm font-semibold text-creme focus:outline-none focus:ring-2 focus:ring-marinho disabled:opacity-60"
           >Salvar observação</button>
 
           <button
             type="button"
             data-acao="${item.visita_concluida ? "desmarcar-visita" : "concluir-visita"}"
             data-id="${item.id}"
-            class="w-full rounded-xl border border-blue-700 px-4 py-3 text-sm font-semibold text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-700 disabled:opacity-60"
+            class="w-full rounded-xl border border-oceano px-4 py-3 text-sm font-semibold text-oceano focus:outline-none focus:ring-2 focus:ring-marinho disabled:opacity-60"
           >${item.visita_concluida ? "Desmarcar visita" : "Marcar visita concluída"}</button>
 
           <button
@@ -363,10 +341,10 @@ function cartao(item) {
             data-acao="maps"
             data-id="${item.id}"
             aria-label="Abrir ${esc(item.endereco)} no Google Maps"
-            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-600"
+            class="w-full rounded-xl border border-mar px-4 py-3 text-sm font-semibold text-mar focus:outline-none focus:ring-2 focus:ring-marinho"
           >Abrir no Google Maps</button>
 
-          <p class="text-xs text-slate-500">
+          <p class="text-xs text-mar">
             Atualizado em: ${esc(new Date(item.atualizado_em).toLocaleString("pt-BR"))}
           </p>
         </div>
@@ -384,28 +362,28 @@ function renderizarLista() {
     el.lista.innerHTML = Array.from({ length: 3 })
       .map(
         () => `
-        <div class="animate-pulse rounded-2xl bg-white p-4 shadow-sm">
-          <div class="h-3 w-24 rounded bg-slate-200"></div>
-          <div class="mt-3 h-4 w-3/4 rounded bg-slate-200"></div>
-          <div class="mt-2 h-3 w-1/2 rounded bg-slate-200"></div>
-          <div class="mt-4 h-10 w-full rounded bg-slate-100"></div>
+        <div class="animate-pulse rounded-2xl bg-white p-4 shadow-sm ring-1 ring-mar/30">
+          <div class="h-3 w-24 rounded bg-mar/30"></div>
+          <div class="mt-3 h-4 w-3/4 rounded bg-mar/30"></div>
+          <div class="mt-2 h-3 w-1/2 rounded bg-mar/20"></div>
+          <div class="mt-4 h-10 w-full rounded bg-creme"></div>
         </div>`,
       )
       .join("")
       .concat(
-        `<p class="text-center text-sm text-slate-600">Carregando endereços...</p>`,
+        `<p class="text-center text-sm font-medium text-oceano">Carregando endereços...</p>`,
       );
     return;
   }
 
   if (estado.erro) {
     el.lista.innerHTML = `
-      <div class="rounded-2xl bg-white p-4 text-center shadow-sm">
-        <p class="text-sm font-medium text-red-800">${esc(estado.erro)}</p>
+      <div class="rounded-2xl bg-white p-4 text-center shadow-sm ring-1 ring-marinho">
+        <p class="text-sm font-semibold text-marinho">${esc(estado.erro)}</p>
         <button
           type="button"
           data-acao="recarregar"
-          class="mt-3 rounded-xl bg-blue-700 px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-700"
+          class="mt-3 rounded-xl bg-oceano px-4 py-3 text-sm font-semibold text-creme focus:outline-none focus:ring-2 focus:ring-marinho"
         >Tentar novamente</button>
       </div>`;
     return;
@@ -415,8 +393,8 @@ function renderizarLista() {
 
   if (visiveis.length === 0) {
     el.lista.innerHTML = `
-      <div class="rounded-2xl bg-white p-6 text-center shadow-sm">
-        <p class="text-sm text-slate-700">
+      <div class="rounded-2xl bg-white p-6 text-center shadow-sm ring-1 ring-mar/30">
+        <p class="text-sm text-oceano">
           Nenhum endereço encontrado com os filtros atuais.
         </p>
       </div>`;
@@ -428,7 +406,7 @@ function renderizarLista() {
 
 function renderizar() {
   renderizarResumo();
-  renderizarTerritorios();
+  renderizarRegioes();
   renderizarLista();
 }
 
@@ -482,21 +460,16 @@ function alternarCartao(id, botao) {
 /* Eventos                                                             */
 /* ------------------------------------------------------------------ */
 
-el.busca.addEventListener("input", (evento) => {
-  estado.busca = evento.target.value;
-  renderizarLista();
-});
-
 el.status.addEventListener("change", (evento) => {
   estado.status = evento.target.value;
   renderizarLista();
 });
 
-el.territorios.addEventListener("click", (evento) => {
-  const botao = evento.target.closest("button[data-territorio]");
+el.regioes.addEventListener("click", (evento) => {
+  const botao = evento.target.closest("button[data-regiao]");
   if (!botao) return;
-  estado.territorio = botao.dataset.territorio;
-  localStorage.setItem(CHAVE_TERRITORIO, estado.territorio);
+  estado.regiao = botao.dataset.regiao;
+  localStorage.setItem(CHAVE_REGIAO, estado.regiao);
   renderizar();
 });
 
